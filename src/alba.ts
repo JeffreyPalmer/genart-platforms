@@ -1,7 +1,6 @@
 // Alba platform abstraction
 import type { Seed } from './platform.js'
 import { GenArtPlatform } from './platform.js'
-import { albaSnippet } from './alba-snippet.js'
 
 type AlbaType = typeof window & {
     alba: {
@@ -19,18 +18,20 @@ type AlbaType = typeof window & {
     };
 };
 
-const alba = (window as AlbaType).alba ?? albaSnippet()
-
 export class Alba implements GenArtPlatform {
     private _hash: string
     private _seed: Seed
     private _pixelRatio: number
+    private _alba
 
     constructor() {
-        // This is a bad idea TM
-        const hash = alba.params.seed ?? alba._testSeed()
-        this._hash = hash
-        this._seed = Alba.generateSeed(hash)
+        const alba = (window as AlbaType).alba
+        this._alba = alba
+
+        // TODO: Have this only happen in DEV mode?
+        // Generate a seed if we haven't been given one, for convenience during development
+        this._hash = alba.params.seed ?? alba._testSeed()
+        this._seed = Alba.generateSeed(this._hash)
         this._pixelRatio = window.devicePixelRatio ?? 2
     }
 
@@ -48,16 +49,17 @@ export class Alba implements GenArtPlatform {
     }
 
     triggerPreview(): void {
-        alba.setComplete(true)
+        this._alba.setComplete(true)
     }
 
-    generateHash() {
-        this._hash = alba._testSeed()
-        this._seed = Alba.generateSeed(this._hash)
-    }
-
+    // TODO: Should the default width be settable?
     width() {
-        return alba.params.width ?? window.innerWidth * this._pixelRatio
+        return this._alba.params.width ?? window.innerWidth * this._pixelRatio
+    }
+
+    regenerateHashAndSeed() {
+        this._hash = this._alba._testSeed()
+        this._seed = Alba.generateSeed(this._hash)
     }
 
     // Generate an RNG seed from the hash string

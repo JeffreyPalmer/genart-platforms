@@ -5,8 +5,8 @@ export interface GenArtPlatform {
     triggerPreview():void
     hash():string
     seed():Seed
-    generateHash():void
     width():number
+    regenerateHashAndSeed():void
 }
 
 // Save the current hash to local storage for debugging/sanity purposes

@@ -14,12 +14,10 @@ const alphabet = "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"
 export class FxHash implements GenArtPlatform {
     private _hash: string
     private _seed: Seed
-    private _pixelRatio: number
 
     constructor() {
         this._hash = fxhash
         this._seed = FxHash.generateSeed(this._hash)
-        this._pixelRatio = window.devicePixelRatio ?? 2
     }
 
     hash(): string {
@@ -38,15 +36,15 @@ export class FxHash implements GenArtPlatform {
         fxpreview()
     }
 
-    generateHash() {
-        this._hash = "oo" + Array(49).fill(0).map(_ => alphabet[(Math.random() * alphabet.length) | 0]).join('')
-        this._seed = FxHash.generateSeed(this._hash)
-    }
-
     width() {
         // FxHash doesn't have the notion of a requested width
         // Default to the window width
-        return window.innerWidth * this._pixelRatio
+        return window.innerWidth * (window.devicePixelRatio ?? 2)
+    }
+
+    regenerateHashAndSeed() {
+        this._hash = "oo" + Array(49).fill(0).map(_ => alphabet[(Math.random() * alphabet.length) | 0]).join('')
+        this._seed = FxHash.generateSeed(this._hash)
     }
 
     // From the fx(hash) snippet
