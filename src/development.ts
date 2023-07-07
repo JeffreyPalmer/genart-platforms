@@ -1,25 +1,24 @@
-// fx(hash) platform abstraction
+// development platform that doesn't require any content your index.html
+// based off of the fxhash implementation, but with hash local hash generation
 import type { Seed } from './platform.js'
 import { GenArtPlatform } from './platform.js'
-
-// TODO: Upgrade to the new snippet API
-// Pre-define functions that are provided by the fxhash snippet
-declare var fxhash: string
-declare var isFxpreview: boolean
-declare var fxpreview: () => void
 
 const alphabet = "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"
 
 // Internal use only
-export class FxHash implements GenArtPlatform {
+export class Development implements GenArtPlatform {
     private _hash: string
     private _seed: Seed
     private _pixelRatio: number
 
     constructor() {
-        this._hash = fxhash
-        this._seed = FxHash.generateSeed(this._hash)
+        // Try to load a hash from the url
+        let params = new URLSearchParams(location.search)
+        const hash = params.get('hash') ?? Development.generateHash()
+        this._hash = hash
+        this._seed = Development.generateSeed(hash)
         this._pixelRatio = window.devicePixelRatio ?? 2
+        console.log(`Initializing development platform with hash: ${hash}`)
     }
 
     hash(): string {
@@ -31,22 +30,26 @@ export class FxHash implements GenArtPlatform {
     }
 
     isPreview(): boolean {
-        return isFxpreview
+        return true
     }
 
     triggerPreview(): void {
-        fxpreview()
+        console.log("Triggered development preview")
     }
 
     generateHash() {
-        this._hash = "oo" + Array(49).fill(0).map(_ => alphabet[(Math.random() * alphabet.length) | 0]).join('')
-        this._seed = FxHash.generateSeed(this._hash)
+        this._hash = Development.generateHash()
+        this._seed = Development.generateSeed(this._hash)
+        console.log(`Generated a new hash: ${this._hash}`)
     }
 
     width() {
-        // FxHash doesn't have the notion of a requested width
         // Default to the window width
         return window.innerWidth * this._pixelRatio
+    }
+
+    private static generateHash() {
+        return "oo" + Array(49).fill(0).map(_ => alphabet[(Math.random() * alphabet.length) | 0]).join('')
     }
 
     // From the fx(hash) snippet

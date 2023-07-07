@@ -3,7 +3,7 @@ import type { Seed } from './platform.js'
 import { GenArtPlatform } from './platform.js'
 import { albaSnippet } from './alba-snippet.js'
 
-type Alba = typeof window & {
+type AlbaType = typeof window & {
     alba: {
         params: {
             seed: string;
@@ -19,9 +19,9 @@ type Alba = typeof window & {
     };
 };
 
-const alba = (window as Alba).alba ?? albaSnippet()
+const alba = (window as AlbaType).alba ?? albaSnippet()
 
-class AlbaImpl implements GenArtPlatform {
+export class Alba implements GenArtPlatform {
     private _hash: string
     private _seed: Seed
     private _pixelRatio: number
@@ -30,7 +30,7 @@ class AlbaImpl implements GenArtPlatform {
         // This is a bad idea TM
         const hash = alba.params.seed ?? alba._testSeed()
         this._hash = hash
-        this._seed = AlbaImpl.generateSeed(hash)
+        this._seed = Alba.generateSeed(hash)
         this._pixelRatio = window.devicePixelRatio ?? 2
     }
 
@@ -53,7 +53,7 @@ class AlbaImpl implements GenArtPlatform {
 
     generateHash() {
         this._hash = alba._testSeed()
-        this._seed = AlbaImpl.generateSeed(this._hash)
+        this._seed = Alba.generateSeed(this._hash)
     }
 
     width() {
@@ -66,5 +66,3 @@ class AlbaImpl implements GenArtPlatform {
         return [...Array(4).keys()].map( (i) => parseInt(seedHex.slice(i * 8, (i+1) * 8), 16)) as Seed
     }
 }
-
-export const Alba: GenArtPlatform = new AlbaImpl()
