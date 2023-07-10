@@ -6,6 +6,9 @@ export interface GenArtPlatform {
     hash():string
     seed():Seed
     width():number
+}
+
+export interface GenArtBatchable {
     regenerateHashAndSeed():void
 }
 

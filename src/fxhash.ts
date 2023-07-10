@@ -1,6 +1,6 @@
 // fx(hash) platform abstraction
 import type { Seed } from './platform.js'
-import { GenArtPlatform } from './platform.js'
+import { GenArtBatchable, GenArtPlatform, } from './platform.js'
 
 // TODO: Upgrade to the new snippet API
 // Pre-define functions that are provided by the fxhash snippet
@@ -10,10 +10,11 @@ declare var fxpreview: () => void
 
 const alphabet = "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"
 
-// Internal use only
+// TODO: Allow overrides during construction?
+// TODO: Should devicePixeRatio be used or should that be a param during construction?
 export class FxHash implements GenArtPlatform {
-    private _hash: string
-    private _seed: Seed
+    protected _hash: string
+    protected _seed: Seed
 
     constructor() {
         this._hash = fxhash
@@ -42,17 +43,27 @@ export class FxHash implements GenArtPlatform {
         return window.innerWidth * (window.devicePixelRatio ?? 2)
     }
 
-    regenerateHashAndSeed() {
-        this._hash = "oo" + Array(49).fill(0).map(_ => alphabet[(Math.random() * alphabet.length) | 0]).join('')
-        this._seed = FxHash.generateSeed(this._hash)
-    }
-
     // From the fx(hash) snippet
-    private static generateSeed(hash: string): Seed {
+    // TODO: Is it possible to call this from the new snippet instead of replicating this code?
+    protected static generateSeed(hash: string): Seed {
         let b58dec = (str: string) => [...str].reduce((p, c) => p * alphabet.length + alphabet.indexOf(c) | 0, 0)
         let fxhashTrunc = hash.slice(2)
         let regex = new RegExp(".{" + ((hash.length / 4) | 0) + "}", 'g')
         let hashes = fxhashTrunc.match(regex)!.map(h => b58dec(h))
         return [...hashes] as Seed
+    }
+}
+
+
+// Add an extra method to support batched rendering
+export class FxHashDev extends FxHash implements GenArtBatchable {
+    constructor() {
+        super()
+        console.log("WARNING: Using FxHash development version")
+    }
+
+    regenerateHashAndSeed() {
+        this._hash = "oo" + Array(49).fill(0).map(_ => alphabet[(Math.random() * alphabet.length) | 0]).join('')
+        this._seed = FxHash.generateSeed(this._hash)
     }
 }

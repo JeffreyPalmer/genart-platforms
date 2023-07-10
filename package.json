@@ -1,6 +1,6 @@
 {
     "name": "@jeffpalmer/genart-platforms",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "genart-platforms provides an abstraction layer over common generative art platforms.",
     "type": "module",
     "exports": "./dist/index.js",

@@ -1,6 +1,6 @@
 // Alba platform abstraction
-import type { Seed } from './platform.js'
-import { GenArtPlatform } from './platform.js'
+import type { Seed } from './platform.js';
+import { GenArtBatchable, GenArtPlatform } from './platform.js';
 
 type AlbaType = typeof window & {
     alba: {
@@ -18,21 +18,65 @@ type AlbaType = typeof window & {
     };
 };
 
+// Generate an RNG seed from the hash string
+function generateSeed(hash: string): Seed {
+    const [_, seedHex] = hash.split("x")
+    return [...Array(4).keys()].map((i) => parseInt(seedHex.slice(i * 8, (i + 1) * 8), 16)) as Seed
+}
+
+// TODO: Allow for overrides during construction?
+// TODO: Should devicePixeRatio be used or should that be a param during construction?
+// Pull out all non-essential code to help in minimization
 export class Alba implements GenArtPlatform {
     private _hash: string
     private _seed: Seed
-    private _pixelRatio: number
-    private _alba
+    private _alba: AlbaType["alba"]
 
     constructor() {
         const alba = (window as AlbaType).alba
         this._alba = alba
+        this._hash = alba.params.seed
+        this._seed = generateSeed(this._hash)
+    }
 
-        // TODO: Have this only happen in DEV mode?
-        // Generate a seed if we haven't been given one, for convenience during development
-        this._hash = alba.params.seed ?? alba._testSeed()
-        this._seed = Alba.generateSeed(this._hash)
-        this._pixelRatio = window.devicePixelRatio ?? 2
+    hash(): string {
+        return this._hash
+    }
+
+    seed(): Seed {
+        return this._seed
+    }
+
+    isPreview(): boolean {
+        // Alba doesn't currently have a way to determine if this is a preview render, so always assume it is
+        return true
+    }
+
+    triggerPreview(): void {
+        this._alba.setComplete(true)
+    }
+
+    // TODO: Should the default width be settable instead of innerWidth?
+    width() {
+        return this._alba.params.width ?? window.innerWidth * (window.devicePixelRatio ?? 2)
+    }
+}
+
+
+// Convenience class that will auto-generate hashes and provide support for batch rendering
+// It will also try to pull a hash from the url, if provided, before generating a random one
+export class AlbaDev implements GenArtPlatform, GenArtBatchable {
+    private _hash: string
+    private _seed: Seed
+    private _alba: AlbaType["alba"]
+
+    constructor() {
+        const alba = (window as AlbaType).alba
+        this._alba = alba
+        let params = new URLSearchParams(location.search)
+        this._hash = alba.params.seed ?? params.get('hash') ?? this._alba._testSeed()
+        this._seed = generateSeed(this._hash)
+        console.log("WARNING: Using Alba development version")
     }
 
     hash(): string {
@@ -54,17 +98,11 @@ export class Alba implements GenArtPlatform {
 
     // TODO: Should the default width be settable?
     width() {
-        return this._alba.params.width ?? window.innerWidth * this._pixelRatio
+        return this._alba.params.width ?? window.innerWidth * (window.devicePixelRatio ?? 2)
     }
 
     regenerateHashAndSeed() {
         this._hash = this._alba._testSeed()
-        this._seed = Alba.generateSeed(this._hash)
-    }
-
-    // Generate an RNG seed from the hash string
-    private static generateSeed(hash: string): Seed {
-        const [_, seedHex] = hash.split("x")
-        return [...Array(4).keys()].map( (i) => parseInt(seedHex.slice(i * 8, (i+1) * 8), 16)) as Seed
+        this._seed = generateSeed(this._hash)
     }
 }

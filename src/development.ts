@@ -1,12 +1,12 @@
 // development platform that doesn't require any content your index.html
 // based off of the fxhash implementation, but with hash local hash generation
 import type { Seed } from './platform.js'
-import { GenArtPlatform } from './platform.js'
+import { GenArtBatchable, GenArtPlatform } from './platform.js'
 
 const alphabet = "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"
 
 // Internal use only
-export class Development implements GenArtPlatform {
+export class Development implements GenArtPlatform, GenArtBatchable {
     private _hash: string
     private _seed: Seed
 
