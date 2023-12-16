@@ -1,6 +1,6 @@
 {
     "name": "@jeffpalmer/genart-platforms",
-    "version": "0.3.1",
+    "version": "0.4.0",
     "description": "genart-platforms provides an abstraction layer over common generative art platforms.",
     "type": "module",
     "exports": "./dist/index.js",
@@ -39,10 +39,14 @@
     },
     "homepage": "https://github.com/JeffreyPalmer/genart-platforms#readme",
     "devDependencies": {
+        "@fxhash/project-sdk": "^0.0.12",
+        "@thi.ng/random": "^3.6.18",
         "@tsconfig/recommended": "1.0.3",
         "prettier": "3.1.1",
         "rimraf": "^5.0.1",
         "typescript": "5.3.3"
     },
-    "dependencies": {}
+    "dependencies": {
+        "@jeffpalmer/genart-random": "^0.3.0"
+    }
 }

@@ -1,6 +1,7 @@
 // Alba platform abstraction
+import { ResettableRandom } from '@jeffpalmer/genart-random';
 import type { Seed } from './platform.js';
-import { GenArtBatchable, GenArtPlatform } from './platform.js';
+import { DefaultRng, GenArtBatchable, GenArtPlatform } from './platform.js';
 
 type AlbaType = typeof window & {
     alba: {
@@ -18,6 +19,7 @@ type AlbaType = typeof window & {
     };
 };
 
+// FIXME: Replace this with code from the alba library?
 // Generate an RNG seed from the hash string
 function generateSeed(hash: string): Seed {
     const [_, seedHex] = hash.split("x")
@@ -37,6 +39,10 @@ export class Alba implements GenArtPlatform {
         this._alba = alba
         this._hash = alba.params.seed
         this._seed = generateSeed(this._hash)
+    }
+
+    rng(): ResettableRandom {
+        return new DefaultRng(this._seed)
     }
 
     hash(): string {
@@ -79,6 +85,10 @@ export class AlbaDev implements GenArtPlatform, GenArtBatchable {
         console.log("WARNING: Using Alba development version")
     }
 
+    rng() {
+        return new DefaultRng(this._seed)
+    }
+
     hash(): string {
         return this._hash
     }
@@ -98,7 +108,7 @@ export class AlbaDev implements GenArtPlatform, GenArtBatchable {
 
     // TODO: Should the default width be settable?
     width() {
-        return this._alba.params.width ?? window.innerWidth * (window.devicePixelRatio ?? 2)
+        return this._alba.params.width ?? window.innerWidth * Math.min(window.devicePixelRatio ?? 1, 2)
     }
 
     regenerateHashAndSeed() {

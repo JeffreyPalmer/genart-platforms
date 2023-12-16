@@ -1,7 +1,8 @@
 // development platform that doesn't require any content your index.html
 // based off of the fxhash implementation, but with hash local hash generation
+import { ResettableRandom } from '@jeffpalmer/genart-random'
 import type { Seed } from './platform.js'
-import { GenArtBatchable, GenArtPlatform } from './platform.js'
+import { GenArtBatchable, GenArtPlatform, DefaultRng } from './platform.js'
 
 const alphabet = "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"
 
@@ -27,7 +28,7 @@ export class Development implements GenArtPlatform, GenArtBatchable {
             hash: params.get('hash') ?? Development.generateHash(),
             isPreview: true,
             // Default to the window width
-            width: window.innerWidth * (window.devicePixelRatio ?? 2),
+            width: Math.min(window.devicePixelRatio ?? 1, 2) * window.innerWidth,
             ...options
         }
 
@@ -41,9 +42,14 @@ export class Development implements GenArtPlatform, GenArtBatchable {
         console.log(`Initializing development platform with hash: ${hash}`)
     }
 
+    rng(): ResettableRandom {
+        return new DefaultRng(this._seed)
+    }
+
     hash(): string {
         return this._hash
     }
+
 
     seed(): Seed {
         return this._seed
